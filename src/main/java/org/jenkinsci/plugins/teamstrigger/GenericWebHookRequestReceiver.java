@@ -12,6 +12,10 @@ import com.jayway.jsonpath.PathNotFoundException;
 import hudson.Extension;
 import hudson.model.UnprotectedRootAction;
 import hudson.security.csrf.CrumbExclusion;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -20,17 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.teamstrigger.jobfinder.JobFinder;
 import org.jenkinsci.plugins.teamstrigger.resolvers.JsonFlattener;
 import org.jenkinsci.plugins.teamstrigger.whitelist.WhitelistException;
 import org.jenkinsci.plugins.teamstrigger.whitelist.WhitelistVerifier;
 import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 @Extension
 public class GenericWebHookRequestReceiver extends CrumbExclusion implements UnprotectedRootAction {
@@ -49,7 +49,7 @@ public class GenericWebHookRequestReceiver extends CrumbExclusion implements Unp
       Logger.getLogger(GenericWebHookRequestReceiver.class.getName());
   private final JsonFlattener jsonFlattener = new JsonFlattener();
 
-  public HttpResponse doInvoke(final StaplerRequest request) {
+  public HttpResponse doInvoke(final StaplerRequest2 request) {
     String postContent = null;
     Map<String, String[]> parameterMap = null;
     Map<String, List<String>> headers = null;
@@ -112,7 +112,7 @@ public class GenericWebHookRequestReceiver extends CrumbExclusion implements Unp
             content.substring(content.lastIndexOf("param:") + 6, content.lastIndexOf("\n"));
         return subContent.replace("</at>", "").trim().split(textSeparator)[0];
       } else {
-        if(content.contains(",")){
+        if (content.contains(",")) {
           return content.substring(0, content.indexOf(","));
         }
         return content;
@@ -146,7 +146,7 @@ public class GenericWebHookRequestReceiver extends CrumbExclusion implements Unp
   }
 
   @VisibleForTesting
-  Map<String, List<String>> getHeaders(final StaplerRequest request) {
+  Map<String, List<String>> getHeaders(final StaplerRequest2 request) {
     final Map<String, List<String>> headers = new HashMap<>();
     final Enumeration<String> headersEnumeration = request.getHeaderNames();
     while (headersEnumeration.hasMoreElements()) {
